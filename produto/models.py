@@ -2,8 +2,7 @@ from django.conf import settings
 from PIL import Image
 from django.db import models
 import os
-
-from django.db.models.fields import PositiveIntegerField
+from django.utils.text import slugify
 
 
 class Produto(models.Model):
@@ -13,18 +12,26 @@ class Produto(models.Model):
     imagem = models.ImageField(
         # cria a pasta produto_imagens/ano/mes e opcional com blank e null
         upload_to='produto_imagens/%Y/%m/', blank=True, null=True)
-    slug = models.SlugField(unique=True)
-    preco_marketing = models.FloatField()  # sem default = obrigatorio
-    preco_marketing_promocional = models.FloatField(default=0)
+    slug = models.SlugField(unique=True, blank=True, null=True)
+    preco_marketing = models.FloatField(verbose_name='Preço')  # sem default = obrigatorio
+    preco_marketing_promocional = models.FloatField(default=0, verbose_name='Preço Promo.')
     tipo = models.CharField(
         default='V',
         max_length=1,
         choices=(
-            ('V', 'Variacao'),
+            ('V', 'Variável'),
             ('S', 'Simples')
         )
     )
-
+    
+    def get_preco_formatado(self):
+        return f'R$ {self.preco_marketing:.2f}'.replace('.', ',')
+    get_preco_formatado.short_description = 'Preço'
+    
+    def get_preco_promocional_formatado(self):
+        return f'R$ {self.preco_marketing_promocional:.2f}'.replace('.', ',')
+    get_preco_promocional_formatado.short_description = 'Preço promo'
+    
     @staticmethod  # não tem self então static
     def resize_image(img, new_width=800):
         img_full_path = os.path.join(settings.MEDIA_ROOT, img.name)
@@ -47,6 +54,11 @@ class Produto(models.Model):
         print('Imagem foi redimensionada')
 
     def save(self, *args, **kwargs):
+        if not self.slug:
+            # slugify no nome do produto + primary key
+            slug = f'{slugify(self.nome)}'
+            self.slug = slug
+            
         super().save(*args, **kwargs)
 
         max_image_size = 800
@@ -61,16 +73,16 @@ class Produto(models.Model):
 class Variacao(models.Model):
     # para a class Produto, apaga todas as variações quando apagado
     produto = models.ForeignKey(Produto, on_delete=models.CASCADE)
-    
+
     nome = models.CharField(max_length=50, blank=True, null=True)
     preco = models.FloatField()
     preco_promocional = models.FloatField(default=0)
     estoque = models.PositiveIntegerField(default=1)
 
     def __str__(self):
-        # retorna o nome da varição ou o nome que está na classe do Produto 
+        # retorna o nome da varição ou o nome que está na classe do Produto
         return self.nome or self.produto.nome
-    
+
     class Meta:
         verbose_name = 'Variação'
         verbose_name_plural = 'Variações'
