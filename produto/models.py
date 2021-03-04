@@ -1,8 +1,10 @@
 from django.conf import settings
+import os
 from PIL import Image
 from django.db import models
-import os
 from django.utils.text import slugify
+from utils import utils
+
 
 
 class Produto(models.Model):
@@ -25,11 +27,11 @@ class Produto(models.Model):
     )
     
     def get_preco_formatado(self):
-        return f'R$ {self.preco_marketing:.2f}'.replace('.', ',')
+        return utils.formata_preco(self.preco_marketing)
     get_preco_formatado.short_description = 'Preço'
     
     def get_preco_promocional_formatado(self):
-        return f'R$ {self.preco_marketing_promocional:.2f}'.replace('.', ',')
+        return utils.formata_preco(self.preco_marketing_promocional)
     get_preco_promocional_formatado.short_description = 'Preço promo'
     
     @staticmethod  # não tem self então static
@@ -38,8 +40,7 @@ class Produto(models.Model):
         img_pil = Image.open(img_full_path)
         original_width, original_height = img_pil.size
 
-        if original_width <= 800:
-            print('retornando, largura original menor que nova largura')
+        if original_width <= new_width:
             img_pil.close()
             return
 
@@ -55,7 +56,6 @@ class Produto(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            # slugify no nome do produto + primary key
             slug = f'{slugify(self.nome)}'
             self.slug = slug
             
