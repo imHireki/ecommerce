@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
+    'crispy_forms',
     # TODO: remover debug toolbar
     'debug_toolbar',
 ]
@@ -59,6 +60,8 @@ MIDDLEWARE = [
     # TODO: remover debug toolbar
     'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
+
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 ROOT_URLCONF = 'loja.urls'
 
