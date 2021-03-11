@@ -7,6 +7,7 @@ class Pedido(models.Model):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
 
     total = models.FloatField()  # sem argumento == obrigatório
+    qtd_total = models.PositiveIntegerField()
     status = models.CharField(  # charfield com choices para choices
         default="C",
         max_length=1,  # uma letra
@@ -41,4 +42,4 @@ class ItemPedido(models.Model):
     class Meta:
         verbose_name = 'Item do pedido'
         verbose_name_plural = 'Itens do pedido'
-    
+        
